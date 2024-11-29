@@ -7,7 +7,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, URL
 from flask_ckeditor import CKEditor, CKEditorField
-from datetime import date
+from datetime import datetime
 
 '''
 Make sure the required packages are installed: 
@@ -24,6 +24,7 @@ This will install the packages from the requirements.txt for this project.
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+CKEditor(app)
 Bootstrap5(app)
 
 # CREATE DATABASE
@@ -45,16 +46,22 @@ class BlogPost(db.Model):
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
 
 
+class NewPostForm(FlaskForm):
+    title = StringField('Title',[DataRequired()])
+    sub_title = StringField('Sub Title',[DataRequired()])
+    author = StringField('Name',[DataRequired()])
+    img_url = StringField('Blog Background Img Url',[URL()])
+    body = CKEditorField('Blog Content',[DataRequired()])
+    submit = SubmitField('Submit')
+
+
 with app.app_context():
     db.create_all()
 
 
 @app.route('/')
 def get_all_posts():
-    # TODO: Query the database for all the posts. Convert the data to a python list.
     all_posts = db.session.execute(db.select(BlogPost)).scalars().all()
-
-    posts = []
     return render_template("index.html", all_posts=all_posts)
 
 
@@ -67,8 +74,31 @@ def show_post(post_id):
 
 
 # TODO: add_new_post() to create a new blog post
+@app.route("/new-post",methods=["POST","GET"])
+def add_new_post():
+    form = NewPostForm()
+    edit_post = request.args.get("query_post")
+    if form.validate_on_submit():
+        new_post = BlogPost(
+            title = form.title.data,
+            subtitle = form.sub_title.data,
+            author = form.author.data,
+            date = datetime.today().strftime("%B %d, %Y"),
+            body = form.body.data,
+            img_url = form.img_url.data
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
+    return render_template("make-post.html",form=form)
+
 
 # TODO: edit_post() to change an existing blog post
+@app.route("/edit-post/<post_id>",methods = ["POST","GET"])
+def edit_post(post_id):
+    query_post = db.session.execute(db.select(BlogPost).where(BlogPost.id==post_id)).scalars().all()[0]
+    return redirect(url_for("add_new_post",query_post = query_post))
+
 
 # TODO: delete_post() to remove a blog post from the database
 
