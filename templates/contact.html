@@ -9,7 +9,7 @@
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="page-heading">
-          {% if msg_sent: %}
+          {% if submitted: %}
           <h1>Successfully sent your message</h1>
           {% else: %}
           <h1>Contact Me</h1>
@@ -36,8 +36,7 @@
             id="contactForm"
             name="sentMessage"
             action="{{ url_for('contact') }}"
-            method="post"
-          >
+            method="post">
             <div class="form-floating">
               <input
                 class="form-control"
@@ -87,8 +86,7 @@
               class="btn btn-danger text-uppercase"
               id="submitButton"
               type="submit"
-            >
-              NOT USED in Day 67
+            >Send
             </button>
           </form>
         </div>
@@ -96,5 +94,5 @@
     </div>
   </div>
 </main>
-
 {% include "footer.html" %}
+<script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
